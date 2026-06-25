@@ -3,11 +3,6 @@ set -euo pipefail
 
 MANIFEST_FILE="${1:-manifest.xml}"
 
-if ! command -v iqdevices >/dev/null 2>&1; then
-  echo "Error: iqdevices command not found in PATH." >&2
-  exit 1
-fi
-
 if [[ ! -f "$MANIFEST_FILE" ]]; then
   echo "Error: manifest file not found: $MANIFEST_FILE" >&2
   exit 1
@@ -17,13 +12,12 @@ sdk_devices_file="$(mktemp)"
 manifest_devices_file="$(mktemp)"
 trap 'rm -f "$sdk_devices_file" "$manifest_devices_file"' EXIT
 
-LC_ALL=C iqdevices \
+LC_ALL=C ls -1 "${CIQ_HOME}../../Devices" \
   | sed -e 's/\r$//' -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
   | sed '/^$/d' \
   | sort -u >"$sdk_devices_file"
 
 perl -0777 -ne '
-  s/<!--.*?-->//gs;
   while (/<iq:product\b[^>]*\bid="([^"]+)"/g) {
     print lc($1), "\n";
   }
