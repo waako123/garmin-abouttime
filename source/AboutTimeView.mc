@@ -22,6 +22,7 @@ var upTop = true;
 var inLowPower =false;
 // vertical compression of lines (decrease line spacing)
 var linePack = 1.5; 
+var isCjk = false;
 
 enum {
   tiny,
@@ -78,6 +79,7 @@ class AboutTimeView extends WatchUi.WatchFace {
     // ugly hack: use system fonts for languages with unsupported glyphs
     if ((locale[:hours][1].find("一") != null) ||
         (locale[:hours][1].find("하나") != null)) {
+      isCjk = true;
       fonts[tiny] = Graphics.FONT_SMALL;
       fonts[small] = Graphics.FONT_MEDIUM;
       fonts[medium] = Graphics.FONT_SYSTEM_LARGE;
@@ -99,7 +101,9 @@ class AboutTimeView extends WatchUi.WatchFace {
 
   function onPartialUpdate(dc) {
     var clockTime = System.getClockTime();
-    if (dataField == exactTime) {
+    var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+    var piggy = piggyState(clockTime.hour, clockTime.min, today.day_of_week);
+    if (dataField == exactTime || piggy[:showDigital]) {
       WatchUi.requestUpdate();
     }
     else if (clockTime.sec == 30) {
@@ -128,6 +132,21 @@ class AboutTimeView extends WatchUi.WatchFace {
       if (fuzzyHour > 23) {
         fuzzyHour = 0;
       }
+    }
+
+    var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+    var piggy = piggyState(time.hour, time.min, today.day_of_week);
+
+    // noon/midnight standalone + piggy special phrases (override normal template)
+    var special = null;
+    if (fuzzyMinutes == 0 && fuzzyHour == 12) {
+      special = locale[:noon];
+    }
+    else if (fuzzyMinutes == 0 && fuzzyHour == 0) {
+      special = locale[:midnight];
+    }
+    else if (piggy[:special] != null) {
+      special = locale[piggy[:special]];
     }
 
     var iconString = getIconString();
@@ -159,69 +178,19 @@ class AboutTimeView extends WatchUi.WatchFace {
 
     dc.setColor(bgColor, bgColor);
     dc.clear();
-    var timeSpace = drawTimeStrings(dc, fuzzyHour, fuzzyMinutes);
+    var timeSpace = drawTimeStrings(dc, fuzzyHour, fuzzyMinutes, special);
 
-    if ((dataField != hide) && (height - lineHeight > timeSpace[:bottom])) {
-      var activityInfo;
-      var dataString = (System.getSystemStats().battery + 0.5).format("%d") + " %";
-      switch(dataField) {
-        case activeMinutes:
-          activityInfo = ActivityMonitor.getInfo();
-          dataString = activityInfo.activeMinutesDay;
-          break;
-        case date:
-          var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-          dataString = Lang.format("$1$.$2$.", [today.day, today.month]);
-          break;
-        case distance:
-          activityInfo = ActivityMonitor.getInfo();
-          var centimeters = activityInfo.distance;
-          if (centimeters == null) {
-            dataString = "0 m";
-          }
-          else if (centimeters > 100000) {
-            dataString = (centimeters / 100000).format("%.1f") + " km";
-          }
-          else {
-            dataString = (centimeters / 100).format("%d") + " m";
-          }
-          break;
-        case steps:
-          activityInfo = ActivityMonitor.getInfo();
-          dataString = activityInfo.steps;
-          break;
-        case stepGoal:
-          activityInfo = ActivityMonitor.getInfo();
-          dataString = activityInfo.stepGoal;
-          break;
-        case exactTime:
-          dataString = Lang.format("$1$:$2$:$3$", [time.hour.format("%d"), time.min.format("%02d"), time.sec.format("%02d")]);
-          break;
-        case heartRate:
-          if (ActivityMonitor has :getHeartRateHistory) {
-            dataString = Activity.getActivityInfo().currentHeartRate;
-            if(dataString == null) {
-              var hrHistory = ActivityMonitor.getHeartRateHistory(1, true);
-              var hrSample = hrHistory.next();
-              if(hrSample != null && hrSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE){
-                dataString = hrSample.heartRate;
-              }
-            }
-          }
-          break;
-      }
-      if (dataString == null) {
-        return;
-      }
-      if (dataString has :toString) {
-        dataString = dataString.toString();
-      }
+    // bottom line(s): date+weekday always; digital time above during piggy windows
+    var dateString = Lang.format(locale["dateFormat"], [today.year, today.month, today.day, locale["week" + today.day_of_week]]);
+    var dateY = height - lineHeight;
+    drawString(dc, width/2, dateY, fonts[tiny], dataColor, Graphics.TEXT_JUSTIFY_CENTER, dateString);
 
-      if (dataString instanceof Lang.String) {
-        drawString(dc, width/2, height-lineHeight, fonts[tiny], dataColor, Graphics.TEXT_JUSTIFY_CENTER, dataString);
-      }
-      else {
-        // System.println(dataString + " is not a string");
+    if (piggy[:showDigital]) {
+      var digitalString = time.hour.format("%d") + ":" + time.min.format("%02d");
+      var digitalFont = fonts[small];
+      var digitalY = dateY - lineHeight - Graphics.getFontHeight(digitalFont) / 2;
+      if (digitalY - Graphics.getFontHeight(digitalFont) / 2 > timeSpace[:bottom]) {
+        drawString(dc, width/2, digitalY, digitalFont, dataColor, Graphics.TEXT_JUSTIFY_CENTER, digitalString);
       }
     }
 
@@ -232,6 +201,13 @@ class AboutTimeView extends WatchUi.WatchFace {
     }
     if ((timeSpace[:top] >= iconHeight) && showIcons) {
       drawString(dc, x, iconHeight, fonts[icons], textColor, Graphics.TEXT_JUSTIFY_CENTER, iconString);
+    }
+
+    if (showBattery) {
+      var batteryStr = (System.getSystemStats().battery + 0.5).toNumber().format("%d") + "%";
+      var iconsWidth = dc.getTextWidthInPixels(iconString, fonts[icons]);
+      var bx = x + iconsWidth / 2 + 6;
+      drawString(dc, bx, iconHeight, fonts[tiny], dataColor, Graphics.TEXT_JUSTIFY_LEFT, batteryStr);
     }
 
   }
@@ -283,12 +259,12 @@ class AboutTimeView extends WatchUi.WatchFace {
     dc.drawText(x, y, font, string, alignment | Graphics.TEXT_JUSTIFY_VCENTER);
   }
 
-  function drawTimeStrings(dc, fuzzyHour, fuzzyMinutes) {
+  function drawTimeStrings(dc, fuzzyHour, fuzzyMinutes, special) {
 
     var timeSpace = {};
 
     var currentLocale = localize();
-    var strings = prepareStrings(fuzzyHour, fuzzyMinutes, currentLocale);
+    var strings = prepareStrings(fuzzyHour, fuzzyMinutes, currentLocale, special);
     var top = strings[:top];
     var topFont = strings[:topFont];
     var middle = strings[:middle];
@@ -335,6 +311,25 @@ class AboutTimeView extends WatchUi.WatchFace {
 
     return timeSpace;
 
+  }
+
+  // piggy time (工作提醒): workday-only special phrases + digital time windows.
+  // Returns { :showDigital => Boolean, :special => String-key-or-null }.
+  function piggyState(hour, min, dow) {
+    var state = { :showDigital => false, :special => null };
+    if (!piggyTime || dow < 2 || dow > 6) {
+      return state;
+    }
+    var mins = hour * 60 + min;
+    if (mins >= 8 * 60 + 10 && mins <= 8 * 60 + 40) { state[:showDigital] = true; }
+    if (mins >= 16 * 60 + 30 && mins <= 17 * 60 + 30) { state[:showDigital] = true; }
+    if (mins >= 8 * 60 + 20 && mins <= 8 * 60 + 30) { state[:special] = "workIn"; }
+    else if (mins >= 16 * 60 + 40 && mins <= 16 * 60 + 44) { state[:special] = "workOff20"; }
+    else if (mins >= 16 * 60 + 45 && mins <= 16 * 60 + 49) { state[:special] = "workOff15"; }
+    else if (mins >= 16 * 60 + 50 && mins <= 16 *60 + 54) { state[:special] = "workOff10"; }
+    else if (mins >= 16 * 60 + 55 && mins <= 16 * 60 + 59) { state[:special] = "workOffAlmost"; }
+    else if (mins >= 17 * 60 && mins <= 17 * 60 + 4) { state[:special] = "workOff"; }
+    return state;
   }
 
   function scaleFont(dc, font, string, position) {
@@ -406,6 +401,22 @@ class AboutTimeView extends WatchUi.WatchFace {
       ],
       :noon => WatchUi.loadResource(Rez.Strings.noon),
       :midnight => WatchUi.loadResource(Rez.Strings.midnight),
+      :hour12Word => WatchUi.loadResource(Rez.Strings.hour12Word),
+      :hourZeroWord => WatchUi.loadResource(Rez.Strings.hourZeroWord),
+      "workIn" => WatchUi.loadResource(Rez.Strings.workIn),
+      "workOff20" => WatchUi.loadResource(Rez.Strings.workOff20),
+      "workOff15" => WatchUi.loadResource(Rez.Strings.workOff15),
+      "workOff10" => WatchUi.loadResource(Rez.Strings.workOff10),
+      "workOffAlmost" => WatchUi.loadResource(Rez.Strings.workOffAlmost),
+      "workOff" => WatchUi.loadResource(Rez.Strings.workOff),
+      "week1" => WatchUi.loadResource(Rez.Strings.week1),
+      "week2" => WatchUi.loadResource(Rez.Strings.week2),
+      "week3" => WatchUi.loadResource(Rez.Strings.week3),
+      "week4" => WatchUi.loadResource(Rez.Strings.week4),
+      "week5" => WatchUi.loadResource(Rez.Strings.week5),
+      "week6" => WatchUi.loadResource(Rez.Strings.week6),
+      "week7" => WatchUi.loadResource(Rez.Strings.week7),
+      "dateFormat" => WatchUi.loadResource(Rez.Strings.dateFormat),
     };
     var keys = locale.keys();
     for (var i=0; i<keys.size(); i++) {
@@ -440,7 +451,7 @@ class AboutTimeView extends WatchUi.WatchFace {
     return currentLocale;
   }
 
-  function prepareStrings(fuzzyHour, fuzzyMinutes, currentLocale) {
+  function prepareStrings(fuzzyHour, fuzzyMinutes, currentLocale, special) {
     var top = "";
     var middle = "";
     var bottom = "";
@@ -448,26 +459,29 @@ class AboutTimeView extends WatchUi.WatchFace {
     var nextHour = fuzzyHour + 1;
 
     if (fuzzyHour == 0) {
-      fuzzyHour = currentLocale[:midnight];
+      fuzzyHour = currentLocale[:hourZeroWord];
     }
     else if (fuzzyHour == 12) {
-      fuzzyHour = currentLocale[:noon];
+      fuzzyHour = currentLocale[:hour12Word];
     }
     else {
       fuzzyHour = currentLocale[:hours][fuzzyHour % 12];
     }
 
     if (nextHour == 24) {
-      nextHour = currentLocale[:midnight];
+      nextHour = currentLocale[:hourZeroWord];
     }
     else if (nextHour == 12) {
-      nextHour = currentLocale[:noon];
+      nextHour = currentLocale[:hour12Word];
     }
     else {
       nextHour = currentLocale[:hours][nextHour % 12];
     }
 
     var lineString = locale["min" + fuzzyMinutes];
+    if (special != null) {
+      lineString = special;
+    }
     var lines = new [3];
     var firstIndex = lineString.find("	");
     if (firstIndex == null) {

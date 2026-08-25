@@ -28,9 +28,9 @@
   <string id="hour11">十一点</string>
   <string id="midnight">半夜啦</string>
   <string id="workIn">上班打卡</string>
-  <string id="workOff20">差二十分钟下班</string>
-  <string id="workOff15">差一刻下班</string>
-  <string id="workOff10">差十分钟下班</string>
+  <string id="workOff20">差二十分钟	下班</string>
+  <string id="workOff15">差一刻	下班</string>
+  <string id="workOff10">差十分钟	下班</string>
   <string id="workOffAlmost">快下班啦</string>
   <string id="workOff">下班！</string>
   <string id="week1">周日</string>

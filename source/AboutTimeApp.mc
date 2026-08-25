@@ -24,6 +24,10 @@ var smallerFont = false;
 
 var showIcons = true;
 
+var piggyTime = true;
+
+var showBattery = true;
+
 var batteryWarn = 30;
 var batteryAlert = 10;
 
@@ -57,6 +61,16 @@ class AboutTime extends Application.AppBase {
       showIcons = true;
     }
 
+    piggyTime = app.getProperty("piggyTime");
+    if (piggyTime != false) {
+      piggyTime = true;
+    }
+
+    showBattery = app.getProperty("showBattery");
+    if (showBattery != false) {
+      showBattery = true;
+    }
+
     var storedBatteryWarn = app.getProperty("batteryWarn");
     if (storedBatteryWarn != null) {
       batteryWarn = storedBatteryWarn;
@@ -75,6 +89,8 @@ class AboutTime extends Application.AppBase {
 
     app.setProperty("smallerFont", smallerFont);
     app.setProperty("showIcons", showIcons);
+    app.setProperty("piggyTime", piggyTime);
+    app.setProperty("showBattery", showBattery);
 
     app.setProperty("batteryWarn", batteryWarn);
     app.setProperty("batteryAlert", batteryAlert);
@@ -97,6 +113,8 @@ class AboutTime extends Application.AppBase {
 
     smallerFont = app.getProperty("smallerFont");
     showIcons = app.getProperty("showIcons");
+    piggyTime = app.getProperty("piggyTime");
+    showBattery = app.getProperty("showBattery");
 
     batteryWarn = app.getProperty("batteryWarn");
     batteryAlert = app.getProperty("batteryAlert");
