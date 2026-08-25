@@ -1,9 +1,9 @@
-<resources>
+﻿<resources>
  <fonts>
-  <font id="id_font_tiny" filename="fonts/NotoSans32.fnt" antialias="true" filter=" %.0123456789:km一七三不两中久九了二五八六再分刚十午四夜大就快是点约要过" />
-  <font id="id_font_small" filename="fonts/NotoSans48.fnt" antialias="true" filter=" %.0123456789:km一七三不两中久九了二五八六再分刚十午四夜大就快是点约要过" />
-  <font id="id_font_medium" filename="fonts/NotoSans64.fnt" antialias="true" filter=" %.0123456789:km一七三不两中久九了二五八六再分刚十午四夜大就快是点约要过" />
-  <font id="id_font_large" filename="fonts/NotoSans96.fnt" antialias="true" filter=" %.0123456789:km一七三不两中久九了二五八六再分刚十午四夜大就快是点约要过" />
-  <font id="id_font_extralarge" filename="fonts/NotoSans128.fnt" antialias="true" filter=" %.0123456789:km一七三不两中久九了二五八六再分刚十午四夜大就快是点约要过" />
+  <font id="id_font_tiny" filename="fonts/NotoSans32.fnt" antialias="true" filter=" %.0123456789:km一七三上下不两中九二五八六分到刻十午半卡周咯啦四多夜差年快打整日月点班过钟零！" />
+  <font id="id_font_small" filename="fonts/NotoSans48.fnt" antialias="true" filter=" %.0123456789:km一七三上下不两中九二五八六分到刻十午半卡周咯啦四多夜差年快打整日月点班过钟零！" />
+  <font id="id_font_medium" filename="fonts/NotoSans64.fnt" antialias="true" filter=" %.0123456789:km一七三上下不两中九二五八六分到刻十午半卡周咯啦四多夜差年快打整日月点班过钟零！" />
+  <font id="id_font_large" filename="fonts/NotoSans96.fnt" antialias="true" filter=" %.0123456789:km一七三上下不两中九二五八六分到刻十午半卡周咯啦四多夜差年快打整日月点班过钟零！" />
+  <font id="id_font_extralarge" filename="fonts/NotoSans128.fnt" antialias="true" filter=" %.0123456789:km一七三上下不两中九二五八六分到刻十午半卡周咯啦四多夜差年快打整日月点班过钟零！" />
  </fonts>
 </resources>
