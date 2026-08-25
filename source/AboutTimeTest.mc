@@ -57,9 +57,11 @@ class AboutTimeTest {
   (:test)
   function testPiggy(logger) {
     var view = new AboutTimeView();
+    logger.warning("DBG piggyTime=" + (piggyTime ? "T" : "F"));
     var s;
     s = view.piggyState(8, 30, 5);   // 周五 8:30 上班打卡 + 数字时间
-    if (s[:special] != "workIn" || !s[:showDigital]) { logger.warning("8:30"); return false; }
+    logger.warning("DBG 8:30 special=[" + s[:special] + "] digital=[" + s[:showDigital] + "]");
+    if (s[:special] != "workIn" || !s[:showDigital]) { return false; }
     s = view.piggyState(16, 45, 5);  // 16:45 差一刻下班 + 数字时间
     if (s[:special] != "workOff15" || !s[:showDigital]) { logger.warning("16:45"); return false; }
     s = view.piggyState(17, 0, 5);   // 17:00 下班！
