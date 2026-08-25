@@ -54,24 +54,23 @@ class AboutTimeTest {
   }
 
   // 猪猪时刻：工作日 + 特殊短语窗口 + 数字时间窗口 + 周末不触发
+  // 注意：Monkey C 字符串相等用 .equals()（==/!= 是引用比较）
   (:test)
   function testPiggy(logger) {
     var view = new AboutTimeView();
-    logger.warning("DBG piggyTime=" + (piggyTime ? "T" : "F"));
     var s;
     s = view.piggyState(8, 30, 5);   // 周五 8:30 上班打卡 + 数字时间
-    logger.warning("DBG 8:30 special=[" + s[:special] + "] digital=[" + s[:showDigital] + "]");
-    if (s[:special] != "workIn" || !s[:showDigital]) { return false; }
+    if (!s[:special].equals("workIn") || !s[:showDigital]) { return false; }
     s = view.piggyState(16, 45, 5);  // 16:45 差一刻下班 + 数字时间
-    if (s[:special] != "workOff15" || !s[:showDigital]) { logger.warning("16:45"); return false; }
+    if (!s[:special].equals("workOff15") || !s[:showDigital]) { return false; }
     s = view.piggyState(17, 0, 5);   // 17:00 下班！
-    if (s[:special] != "workOff") { logger.warning("17:00"); return false; }
+    if (!s[:special].equals("workOff")) { return false; }
     s = view.piggyState(15, 30, 5);  // 非工作窗口
-    if (s[:special] != null || s[:showDigital]) { logger.warning("15:30"); return false; }
+    if (s[:special] != null || s[:showDigital]) { return false; }
     s = view.piggyState(8, 20, 1);   // 周日 不触发
-    if (s[:special] != null) { logger.warning("sunday"); return false; }
+    if (s[:special] != null) { return false; }
     s = view.piggyState(17, 31, 5);  // 出数字时间窗口
-    if (s[:showDigital]) { logger.warning("17:31"); return false; }
+    if (s[:showDigital]) { return false; }
     return true;
   }
 }
