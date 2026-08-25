@@ -36,7 +36,8 @@ if ($Release) {
   & $monkeyc -f $jungle -e -y $Key -o $out
 } else {
   $out = Join-Path $outDir 'AboutTime-zho.prg'
-  $args = @('-f', $jungle, '-d', $Device, '-o', $out, '-r', '-O', '2')
+  $args = @('-f', $jungle, '-d', $Device, '-o', $out)
+  if (-not $UnitTest) { $args += @('-r', '-O', '2') }
   if ($Key -and (Test-Path $Key)) { $args += @('-y', $Key) }
   elseif (Test-Path (Join-Path (Split-Path $root -Parent) 'developer_key.der')) { $args += @('-y', (Join-Path (Split-Path $root -Parent) 'developer_key.der')) }
   if ($UnitTest) { $args += '--unit-test' }
