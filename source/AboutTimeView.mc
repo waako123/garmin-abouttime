@@ -180,34 +180,38 @@ class AboutTimeView extends WatchUi.WatchFace {
     dc.clear();
     var timeSpace = drawTimeStrings(dc, fuzzyHour, fuzzyMinutes, special);
 
-    // bottom line(s): date+weekday always; digital time above during piggy windows
-    var dateString = Lang.format(locale["dateFormat"], [today.year, today.month, today.day, locale["week" + today.day_of_week]]);
-    var dateY = height - lineHeight;
-    drawString(dc, width/2, dateY, fonts[tiny], dataColor, Graphics.TEXT_JUSTIFY_CENTER, dateString);
-
-    if (piggy[:showDigital]) {
-      var digitalString = time.hour.format("%d") + ":" + time.min.format("%02d");
-      var digitalFont = fonts[small];
-      var digitalY = dateY - lineHeight - Graphics.getFontHeight(digitalFont) / 2;
-      if (digitalY - Graphics.getFontHeight(digitalFont) / 2 > timeSpace[:bottom]) {
-        drawString(dc, width/2, digitalY, digitalFont, dataColor, Graphics.TEXT_JUSTIFY_CENTER, digitalString);
-      }
-    }
-
     var x = width/2;
     if (WatchUi has :getSubscreen && WatchUi.getSubscreen() != null) {
       // stupid hard coded value just for descentg1 and instinct2
       x -= 20;
     }
-    if ((timeSpace[:top] >= iconHeight) && showIcons) {
-      drawString(dc, x, iconHeight, fonts[icons], textColor, Graphics.TEXT_JUSTIFY_CENTER, iconString);
-    }
 
+    // top: battery centered (state icons just below it, also centered) -- keeps everything inside the round screen
+    var statusY = iconHeight + 22;
     if (showBattery) {
       var batteryStr = (System.getSystemStats().battery + 0.5).toNumber().format("%d") + "%";
-      var iconsWidth = dc.getTextWidthInPixels(iconString, fonts[icons]);
-      var bx = x + iconsWidth / 2 + 6;
-      drawString(dc, bx, iconHeight, fonts[tiny], dataColor, Graphics.TEXT_JUSTIFY_LEFT, batteryStr);
+      drawString(dc, x, statusY, Graphics.FONT_XTINY, dataColor, Graphics.TEXT_JUSTIFY_CENTER, batteryStr);
+    }
+    if (showIcons && (iconString.length() > 0)) {
+      var iconsY = statusY + Graphics.getFontHeight(Graphics.FONT_XTINY) / 2 + Graphics.getFontHeight(fonts[icons]) / 2 + 8;
+      if (timeSpace[:top] >= iconsY) {
+        drawString(dc, x, iconsY, fonts[icons], textColor, Graphics.TEXT_JUSTIFY_CENTER, iconString);
+      }
+    }
+
+    // bottom: date+weekday (extra small, moved up to stay inside the round screen)
+    var dateString = Lang.format(locale["dateFormat"], [today.year, today.month, today.day, locale["week" + today.day_of_week]]);
+    var dateY = height - 45;
+    // digital time (piggy windows) right above the date, same extra-small font
+    if (piggy[:showDigital]) {
+      var digitalString = time.hour.format("%d") + ":" + time.min.format("%02d");
+      var digitalY = dateY - Graphics.getFontHeight(Graphics.FONT_XTINY) - 20;
+      if (digitalY - Graphics.getFontHeight(Graphics.FONT_XTINY) / 2 > timeSpace[:bottom]) {
+        drawString(dc, width/2, digitalY, Graphics.FONT_XTINY, dataColor, Graphics.TEXT_JUSTIFY_CENTER, digitalString);
+      }
+    }
+    if (dateY - Graphics.getFontHeight(Graphics.FONT_XTINY) / 2 > timeSpace[:bottom]) {
+      drawString(dc, width/2, dateY, Graphics.FONT_XTINY, dataColor, Graphics.TEXT_JUSTIFY_CENTER, dateString);
     }
 
   }

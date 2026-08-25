@@ -40,5 +40,5 @@
   <string id="week5">周四</string>
   <string id="week6">周五</string>
   <string id="week7">周六</string>
-  <string id="dateFormat">$1$年$2$月$3$日 $4$</string>
+  <string id="dateFormat">$2$月$3$日 $4$</string>
 </resources>
