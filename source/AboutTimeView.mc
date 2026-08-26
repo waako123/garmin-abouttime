@@ -288,7 +288,12 @@ class AboutTimeView extends WatchUi.WatchFace {
     var totalHeight = topHeight + middleHeight + bottomHeight;
 
     var x = width / 2;
-    var topY = height / 2 - totalHeight / 2 + topHeight / 2;
+    // two-line phrases sit visually low: shift the whole block up by half a small line
+    var lineShift = 0;
+    if (middle.length() > 0 && bottom.length() > 0) {
+      lineShift = -bottomHeight / 2;
+    }
+    var topY = height / 2 - totalHeight / 2 + topHeight / 2 + lineShift;
     if (WatchUi has :getSubscreen && WatchUi.getSubscreen() != null) {
       // stupid hard coded value just for descentg1 and instinct2
       topY += 20;
@@ -325,8 +330,8 @@ class AboutTimeView extends WatchUi.WatchFace {
       return state;
     }
     var mins = hour * 60 + min;
-    if (mins >= 8 * 60 + 10 && mins <= 8 * 60 + 40) { state[:showDigital] = true; }
-    if (mins >= 16 * 60 + 30 && mins <= 17 * 60 + 30) { state[:showDigital] = true; }
+    if (mins >= 8 * 60 + 10 && mins <= 8 * 60 + 35) { state[:showDigital] = true; }
+    if (mins >= 16 * 60 + 50 && mins <= 17 * 60 + 5) { state[:showDigital] = true; }
     if (mins >= 8 * 60 + 20 && mins <= 8 * 60 + 30) { state[:special] = "workIn"; }
     else if (mins >= 16 * 60 + 40 && mins <= 16 * 60 + 44) { state[:special] = "workOff20"; }
     else if (mins >= 16 * 60 + 45 && mins <= 16 * 60 + 49) { state[:special] = "workOff15"; }

@@ -61,10 +61,25 @@ class AboutTimeTest {
     var s;
     s = view.piggyState(8, 30, 5);   // 周五 8:30 上班打卡 + 数字时间
     if (!s[:special].equals("workIn") || !s[:showDigital]) { return false; }
-    s = view.piggyState(16, 45, 5);  // 16:45 差一刻下班 + 数字时间
-    if (!s[:special].equals("workOff15") || !s[:showDigital]) { return false; }
-    s = view.piggyState(17, 0, 5);   // 17:00 下班！
-    if (!s[:special].equals("workOff")) { return false; }
+    s = view.piggyState(16, 45, 5);  // 16:45 差一刻下班（猪猪短语窗口内）
+    if (!s[:special].equals("workOff15")) { return false; }
+    if (s[:showDigital]) { return false; }  // 数字时间 16:50 才起
+    s = view.piggyState(16, 50, 5);  // 16:50 差十分钟下班 + 数字时间（窗口起点含）
+    if (!s[:special].equals("workOff10") || !s[:showDigital]) { return false; }
+    s = view.piggyState(17, 0, 5);   // 17:00 下班！ + 数字时间
+    if (!s[:special].equals("workOff") || !s[:showDigital]) { return false; }
+    s = view.piggyState(17, 5, 5);   // 17:05 数字时间窗口终点（含）
+    if (s[:special] != null || !s[:showDigital]) { return false; }
+    s = view.piggyState(17, 6, 5);   // 17:06 出数字时间窗口
+    if (s[:showDigital]) { return false; }
+    s = view.piggyState(8, 10, 5);   // 8:10 数字时间窗口起点（含）
+    if (s[:special] != null || !s[:showDigital]) { return false; }
+    s = view.piggyState(8, 35, 5);   // 8:35 数字时间窗口终点（含）
+    if (s[:special] != null || !s[:showDigital]) { return false; }
+    s = view.piggyState(8, 36, 5);   // 8:36 出数字时间窗口
+    if (s[:showDigital]) { return false; }
+    s = view.piggyState(16, 49, 5);  // 16:49 未到数字时间窗口
+    if (s[:showDigital]) { return false; }
     s = view.piggyState(15, 30, 5);  // 非工作窗口
     if (s[:special] != null || s[:showDigital]) { return false; }
     s = view.piggyState(8, 20, 1);   // 周日 不触发
