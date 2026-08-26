@@ -5,6 +5,31 @@ A watch face for Garmin Connect IQ devices
 
 ![Store image](store/AboutTime.png?raw=true "Preview")
 
+## 本 fork：差不多（Simplified Chinese for Forerunner 570 47mm）
+
+> Fork of [samuelmr/garmin-abouttime](https://github.com/samuelmr/garmin-abouttime) (MIT, see LICENSE).
+> Private beta build targeting **fr57047mm** (Forerunner 570, 47 mm, 454×454 AMOLED).
+
+Changes in this fork:
+
+- **简体中文文案口语化**（去翻译腔）：一点过十分 / 快两点咯 / 差一刻两点 等；tab 拆两行排版（主体大字 + 修饰小字）；中午啦/半夜啦 单行大字。
+- **猪猪时刻（Piggy Time）上下班提醒**（工作日周一至五）：8:20–8:30 上班打卡；16:40–17:04 下班四连；8:10–8:40 / 16:30–17:30 数字时间置于日期上方；设置开关「猪猪时刻」默认开。
+- **布局**：电量居中 + 图标；日期「8月25日 周二」（FONT_XTINY，去年份）；两行短语。
+- **设置全中文化** + 新增「猪猪时刻 / 显示电量」开关（zho 独有 settings.xml）。
+- **manifest-zho.xml 精简为仅 fr57047mm**（`-e` 发布构建要求设备在 SDK 设备库，原 167 设备中部分不在）。
+
+Build (Windows, from repo root):
+
+```powershell
+pwsh scripts/build.ps1 -Device fr57047mm            # simulator .prg (-r -O 2)
+pwsh scripts/build.ps1 -Device fr57047mm -UnitTest  # unit tests
+pwsh scripts/build.ps1 -Release -Key <your-key.der> # release .iq
+```
+
+Only the `zho` variant is built (monkey-zho.jungle); other 150+ languages are untouched.
+
+
+
 ## Get it
 [Download from Connect IQ Store](https://samuelmr.github.io/garmin-abouttime/#storenav)
 
